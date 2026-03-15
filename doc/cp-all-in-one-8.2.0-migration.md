@@ -49,6 +49,7 @@ configuration of the broker is more elaborate with more environment variables to
 - [https://github.com/confluentinc/cp-all-in-one/blob/8.0.0-post/cp-all-in-one-community/docker-compose.yml](https://github.com/confluentinc/cp-all-in-one/blob/8.0.0-post/cp-all-in-one-community/docker-compose.yml)
 - [https://docs.confluent.io/platform/current/installation/versions-interoperability.html#cp-and-apache-ak-compatibility](https://docs.confluent.io/platform/current/installation/versions-interoperability.html#cp-and-apache-ak-compatibility)
 - [https://github.com/confluentinc/cp-demo](https://github.com/confluentinc/cp-demo)
+- [https://docs.confluent.io/kafka-client/overview.html#java-client-support](https://docs.confluent.io/kafka-client/overview.html#java-client-support)
 
 ### Compatibility
 - From [https://docs.confluent.io/platform/current/installation/versions-interoperability.html#cp-and-apache-ak-compatibility](https://docs.confluent.io/platform/current/installation/versions-interoperability.html#cp-and-apache-ak-compatibility)
