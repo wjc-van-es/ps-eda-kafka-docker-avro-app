@@ -8,7 +8,7 @@
     </prerequisites>
     <groupId>com.pluralsight.kafka</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>
@@ -21,8 +21,17 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
         <confluent.maven.repo>https://packages.confluent.io/maven/</confluent.maven.repo>
+
+        <kafka-clients.version>4.2.1</kafka-clients.version>
+        <kafka-avro-serializer.version>8.2.3</kafka-avro-serializer.version>
+        <avro.version>1.12.2</avro.version>
+        <slf4j-reload4j.version>2.0.19</slf4j-reload4j.version>
+        <lombok.version>1.18.48</lombok.version>
+        <javafaker.version>1.0.2</javafaker.version>
+        <avro-maven-plugin.version>1.12.2</avro-maven-plugin.version>
+        <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     </properties>
 
     <repositories>
@@ -42,41 +51,47 @@
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
-                <version>4.2.0</version>
+                <version>${kafka-clients.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
-                <version>8.1.1</version><!-- chose the same version as the schema registry -->
+                <version>${kafka-avro-serializer.version}</version><!-- chose the same version as the schema registry -->
             </dependency>
 
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
-                <version>1.12.1</version>
+                <version>${avro.version}</version>
             </dependency>
 
             <!-- Helper Dependencies -->
             <!--
                 Use the same version as the transitive dependency of
                 org.slf4j:slf4j-api under org.apache.kafka:kafka-clients
-                which is 1.7.36 under 4.2.0
+                which is 1.7.36 under 4.2.1
             -->
+            <!-- Dit dwingt ALLES in uw project naar SLF4J 2.0.19 -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j-reload4j.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-reload4j</artifactId>
-                <version>1.7.36</version>
+                <version>${slf4j-reload4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.44</version>
+                <version>${lombok.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.github.javafaker</groupId>
                 <artifactId>javafaker</artifactId>
-                <version>1.0.2</version>
+                <version>${javafaker.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -104,7 +119,7 @@
                 <plugin>
                     <groupId>org.apache.avro</groupId>
                     <artifactId>avro-maven-plugin</artifactId>
-                    <version>1.12.1</version>
+                    <version>${avro-maven-plugin.version}</version>
                     <executions>
                         <execution>
                             <phase>generate-sources</phase>
@@ -121,10 +136,22 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.15.0</version>
+                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
+                        <parameters>true</parameters>
+                        <annotationProcessorPaths>
+                            <!--
+                                Since JDK23+ we need to register Lombok as annotation processor,
+                                as the implicit annotation of annotations has been disabled!
+                             -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
             </plugins>

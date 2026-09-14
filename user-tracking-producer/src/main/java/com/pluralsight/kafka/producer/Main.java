@@ -4,6 +4,7 @@ package com.pluralsight.kafka.producer;
 import com.pluralsight.kafka.model.*;
 import com.pluralsight.kafka.producer.model.Event;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.util.ClassSecurityValidator;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -14,10 +15,19 @@ import java.util.Properties;
 
 import static java.lang.Thread.sleep;
 
+
+
 @Slf4j
 public class Main {
+
     private static final String TOPIC = "user-tracking-avro";
-    public static void main(String[] args) throws InterruptedException {
+
+    static {
+        ClassSecurityValidator.setGlobal(clazz ->
+                clazz != null && clazz.getName().startsWith("com.pluralsight.kafka.model.")
+        );
+    }
+    static void main(String[] args) throws InterruptedException {
 
         EventGenerator eventGenerator = new EventGenerator();
 

@@ -25,15 +25,20 @@ from your favorite IDE. (So this part isn´t deployed to docker containers yet).
 
 The Kafka cluster the example code communicates with, however, is entirely deployed as docker containers:
 - one container with a single Apache kafka broker, listening on port 9092,
-- one container with a single Zookeeper instance, listening on port 2181,
+- ~~one container with a single Zookeeper instance, listening on port 2181~~,
+  - _The Zookeeper container is now absent as we migrated to a newer version of the kafka docker images in 
+    [docker/docker-compose.yml](docker/docker-compose.yml), which uses KRaft instead of Zookeeper for leader election_
 - one container with the Confluent schema-registry server, listening on port 8081.
 
 ### Making good use of the Confluent Platform Community Edition components
-To get this set up to work quickly, I created a [docker/docker-compose.yml](docker/docker-compose.yml) file based on the
+To get this set up to work quickly, I created a [`docker/docker-compose.yml`](docker/docker-compose.yml) file based on the
 one found in
 [GitHub repo: confluentinc cp-all-in-one-community 7.2.1-post](https://github.com/confluentinc/cp-all-in-one/tree/7.2.1-post/cp-all-in-one-community).
-- 7.2.1-post is the current default branch reflecting the latest versions of the Apache Kafka & Confluent technology
-  stack at the date of writing (August 2022).
+- When I first set up this project in August 2022, 7.2.1-post reflected the latest versions of the Apache Kafka & 
+  Confluent technology stack.
+  - Since then, September 2026, I moved to an updated version 8.2.0.
+    [GitHub repo: confluentinc cp-all-in-one-community 8.2.0-post](https://github.com/confluentinc/cp-all-in-one/blob/8.2.0-post/cp-all-in-one-community/docker-compose.yml)
+  - See details of the migration at [doc/cp-all-in-one-8.2.0-migration.md](doc/cp-all-in-one-8.2.0-migration.md)
 - cp-all-in-one-community refers to all components of Confluent platform technology stack that fall under the
   [confluent-community-license](https://www.confluent.io/confluent-community-license/). All source code under this licence
   may be accessed, modified and redistributed freely except for creating a SaaS that tries to compete with Confluent.
@@ -42,7 +47,7 @@ one found in
   - [CE Docker Quickstart documentation](https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html)
   - [Further code examples in various languages](https://docs.confluent.io/platform/current/tutorials/examples/clients/docs/clients-all-examples.html#clients-all-examples)
 
-From this all-in-one [`docker-compose.yml`](https://github.com/confluentinc/cp-all-in-one/blob/7.2.1-post/cp-all-in-one-community/docker-compose.yml)
+From this all-in-one [`docker/docker-compose.yml`](https://github.com/confluentinc/cp-all-in-one/blob/7.2.1-post/cp-all-in-one-community/docker-compose.yml)
 , which defines all the components that are a part of the Confluent platform community edition,
 we only took the three services that are needed to make the example code work and copied them in our own Docker Compose yaml file.
 So, under the hood, we are using Docker images, made available by Confluent (for which we are grateful).
@@ -69,21 +74,27 @@ My introduction of the separate user-tracking-interface maven module
 I think both are great benefits that didn´t take much effort to accomplish.
 
 ---
-**Note**
-
-For IntelliJ to notice the content of the [user-tracking-interface/src/main/generated](user-tracking-interface/src/main/generated)
-directory, you need to mark the directory as *Generated Sources Root* by right-clicking on it in the Project view window and
-choosing *Mark Directory as* > *Generated Sources Root* from the context menu.
-
+> **Note**
+>
+> For IntelliJ to notice the content of the [user-tracking-interface/src/main/generated](user-tracking-interface/src/main/generated)
+> directory, you need to mark the directory as *Generated Sources Root* by right-clicking on it in the Project view 
+> window and choosing *Mark Directory as* > *Generated Sources Root* from the context menu.
 ---
 
 ### Updating all maven dependencies
-I made an effort to update all maven dependencies to the versions available now (August 2022).
+- I made an effort to update all maven dependencies to the versions available now (September 2026).
+
+### Updating the Docker images in [`docker/docker-compose.yml`](docker/docker-compose.yml)
+- In March 2026 we updated the Docker images to
+  - `confluentinc/cp-kafka:8.2.0`, which runs with KRaft and therefore no longer needs the Zookeeper container, and
+  - `confluentinc/cp-schema-registry:8.2.0`
 
 ## Prerequisites
-- A JDK should be installed, version 8 is the minimal requirement, but I tested this example with version 17.
-- Maven, I tested the example with version 3.8.1
-- Docker (including Docker Compose, the docker-compose-plugin is the most recent version v2.6.0, where the commands
+- A JDK should be installed, version 8 is the minimal requirement, but I tested the latest update of this example with 
+  version 25.
+- Maven, I tested the example with version 3.9.16
+- Docker version 29.8.0 
+- Docker Compose v5.1.1, the docker-compose-plugin, where the commands
   start with `docker compose` rather than `docker-compose`. The latter is a deprecated older version 1.29.2)
 
 ## Usage
