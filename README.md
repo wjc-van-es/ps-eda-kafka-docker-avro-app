@@ -32,13 +32,19 @@ The Kafka cluster the example code communicates with, however, is entirely deplo
 
 ### Making good use of the Confluent Platform Community Edition components
 To get this set up to work quickly, I created a [`docker/docker-compose.yml`](docker/docker-compose.yml) file based on the
-one found in
-[GitHub repo: confluentinc cp-all-in-one-community 7.2.1-post](https://github.com/confluentinc/cp-all-in-one/tree/7.2.1-post/cp-all-in-one-community).
-- When I first set up this project in August 2022, 7.2.1-post reflected the latest versions of the Apache Kafka & 
-  Confluent technology stack.
-  - Since then, September 2026, I moved to an updated version 8.2.0.
-    [GitHub repo: confluentinc cp-all-in-one-community 8.2.0-post](https://github.com/confluentinc/cp-all-in-one/blob/8.2.0-post/cp-all-in-one-community/docker-compose.yml)
+one found in the Confluent GitHub repository for the all-in-one community edition
+- When I first set up this project in August 2022, 
+  [GitHub repo: confluentinc cp-all-in-one-community 7.2.1-post](https://github.com/confluentinc/cp-all-in-one/tree/7.2.1-post/cp-all-in-one-community)
+  reflected the latest versions of the Apache Kafka & Confluent technology stack.
+- Since then, in September 2026, I moved to an updated version 8.2.0.
+  [GitHub repo: confluentinc cp-all-in-one-community 8.2.0-post](https://github.com/confluentinc/cp-all-in-one/blob/8.2.0-post/cp-all-in-one-community/docker-compose.yml)
   - See details of the migration at [doc/cp-all-in-one-8.2.0-migration.md](doc/cp-all-in-one-8.2.0-migration.md)
+  - [https://docs.confluent.io/platform/current/installation/versions-interoperability.html](https://docs.confluent.io/platform/current/installation/versions-interoperability.html)
+    shows the compatibility of Confluent versions with corresponding Apache Kafka versions, Operating Systems and Java
+    versions. The `confluentinc/cp-kafka:8.2.0` and `confluentinc/cp-schema-registry:8.2.0` we currently use in our
+    _Docker Compose configuration_ is based on
+    - _Red Hat Universal Base Image 9 Minimal_ as OS and 
+    - uses _Java 21_
 - cp-all-in-one-community refers to all components of Confluent platform technology stack that fall under the
   [confluent-community-license](https://www.confluent.io/confluent-community-license/). All source code under this licence
   may be accessed, modified and redistributed freely except for creating a SaaS that tries to compete with Confluent.
@@ -47,9 +53,11 @@ one found in
   - [CE Docker Quickstart documentation](https://docs.confluent.io/platform/current/quickstart/ce-docker-quickstart.html)
   - [Further code examples in various languages](https://docs.confluent.io/platform/current/tutorials/examples/clients/docs/clients-all-examples.html#clients-all-examples)
 
-From this all-in-one [`docker/docker-compose.yml`](https://github.com/confluentinc/cp-all-in-one/blob/7.2.1-post/cp-all-in-one-community/docker-compose.yml)
-, which defines all the components that are a part of the Confluent platform community edition,
-we only took the three services that are needed to make the example code work and copied them in our own Docker Compose yaml file.
+From this all-in-one docker compose yaml file,
+[GitHub repo: confluentinc cp-all-in-one-community 8.2.0-post](https://github.com/confluentinc/cp-all-in-one/blob/8.2.0-post/cp-all-in-one-community/docker-compose.yml)
+which defines all the components that are a part of the Confluent platform community edition,
+we only take the two services that are needed to make the example code work and copied them in our own Docker Compose 
+yaml file [`docker/docker-compose.yml`](docker/docker-compose.yml).
 So, under the hood, we are using Docker images, made available by Confluent (for which we are grateful).
 
 ## Changes made to the original example source code.
@@ -83,6 +91,8 @@ I think both are great benefits that didn´t take much effort to accomplish.
 
 ### Updating all maven dependencies
 - I made an effort to update all maven dependencies to the versions available now (September 2026).
+- I changed the JDK from 17 to 25. The Kafka client libraries are probably guaranteed and tested to work with
+  Java 21, but I got the example code to work with Java 25, as well.
 
 ### Updating the Docker images in [`docker/docker-compose.yml`](docker/docker-compose.yml)
 - In March 2026 we updated the Docker images to
@@ -117,12 +127,14 @@ I think both are great benefits that didn´t take much effort to accomplish.
   - Run the Main class of the user-tracker-consumer module [com.pluralsight.kafka.consumer.Main](user-tracking-consumer/src/main/java/com/pluralsight/kafka/consumer/Main.java).
     - This application will keep running until you stop its process with Ctrl+C
   - Run the Main class of the user-tracker-producer module [com.pluralsight.kafka.producer.Main](user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/Main.java).
-    - This application will exit after publishing ten events on the `user-tracking-avro` topic, but you may run it multiple
-      times to see multiples of ten events being processed by the consumer. 
+    - This application will exit after publishing ten events on the `user-tracking-avro` topic, but you may run it
+      multiple times to see multiples of ten events being processed by the consumer. 
 
 ## The Schema registration process
-In a production environment the schema registry is configured to only accept schemas registered manually by an authorized administrator.
-In our test setup, however, any Kafka client reading or writing to a topic is able to register an AVRO schema in the schema registry.
+In a production environment the schema registry is configured to only accept schemas registered manually by an 
+authorized administrator.
+In our test setup, however, any Kafka client reading or writing to a topic is able to register an AVRO schema in the 
+schema registry.
 
 In our user-tracking-interface module we generated Java source code for two schemas with the maven build:
 - [`user_schema.avsc`](user-tracking-interface/src/main/resources/avro/user_schema.avsc) for the message key,
