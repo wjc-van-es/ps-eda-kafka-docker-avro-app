@@ -71,7 +71,9 @@
                 org.slf4j:slf4j-api under org.apache.kafka:kafka-clients
                 which is 1.7.36 under 4.2.1
             -->
-            <!-- Dit dwingt ALLES in uw project naar SLF4J 2.0.19 -->
+            <!--
+                Setting this in your dependecyManagement forces all code, to use te exact same version of
+                SLF4J 2.0.19, whether it is our own code or a transitive dependency used by your other dependencies -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>

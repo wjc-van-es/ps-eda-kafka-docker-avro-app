@@ -116,8 +116,85 @@ h1,h2,h3,h4,h5 {
         - `java.vm.version = 21.0.10+7-LTS`
   - CTRL+D exits the interactive bash session inside the `broker` container
 
+## Calling the kafka CLI directly
+Instead of opening a prolonged interactive bash session as explained in the previous section with
+`docker exec -it broker bash` we could call the kafka CLI command directly instead of bash. for instance to start a
+console producer or consumer:
+
+### starting `kafka-console-producer`
+```bash
+~/git/ps-eda-kafka-docker-avro-app$ docker exec -it broker kafka-console-producer \
+  --bootstrap-server broker:29092 \
+  --topic payments
+>{"user": "dirty harry", "amount": 5000, "card-nr": "SNARF-1234-XXXX-29092"}
+>{"user": "Severus van Buren", "amount": 3300, "card-nr": "SvBu-1313-XXXX-29092"} 
+>~/git/ps-eda-kafka-docker-avro-app$  
+```
+With _Ctrl-D_ the execution is terminated
+- Here we should use `--bootstrap-server broker:29092` instead of `--bootstrap-server localhost:9092`, because
+  - Although `PLAINTEXT_HOST://0.0.0.0:9092` is configured and `localhost:9092` can be connected initially during 
+    bootstrap, 
+  - the `kafka-console-producer` cannot reach the `localhost:9092` via loopback, and it is resolved differently for the
+    internal (docker network) connection, namely `PLAINTEXT://broker:29092` instead of `PLAINTEXT_HOST://localhost:9092`
+    as configured by `KAFKA_ADVERTISED_LISTENERS`
+  - So this mismatch between the `--bootstrap-server localhost:9092` command argument and the `PLAINTEXT://broker:29092`
+    configuration of `KAFKA_ADVERTISED_LISTENERS` will lead to 
+    `Connection to node -1 (localhost/127.0.0.1:9092) could not be established.`
+- The difference with `kafka-topics --list` is that it doesn't need to open additional connections to other broker 
+  addresses from the metadata for this operation.
+
+### General rule: which `host:port` combination to use when
+- From inside containers on the same docker network
+  - which is the case when running `docker exec -it <container-name> ...`
+  - use as argument for `--bootstrap-server` the `host:port` combination configured for internal use
+- From the host, e.g. a Java client running on localhost, use the `host:port` combination configured for the host
+  which can be recognized by `<protocol-name>_HOST`
+- So from these two environment variables in [../docker/docker-compose.yml](../docker/docker-compose.yml):
+  ```yaml
+  KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
+  KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+  ```
+  you can derive that with we should use `docker exec -it broker --bootstrap-server broker:29092` since
+  - `broker:29092` is the internal (container network) address for the broker
+- Therefore, to avoid confusion it is best to use it for both 
+  - `kafka-console-producer` (this won't work with `--bootstrap-server localhost:9092`), hence
+     ```bash
+    docker exec -it broker kafka-console-producer \
+      --bootstrap-server broker:29092 \
+      --topic payments
+     ```
+    and
+  - `kafka-topic` (although this works fine with `--bootstrap-server localhost:9092` as well), hence
+    ```bash
+    docker exec -it broker kafka-topics \
+      --bootstrap-server broker:29092 --list
+    ```
+- `localhost:9092` is the external address for the broker that can also be reached from the host of the docker compose
+  cluster, provided [../docker/docker-compose.yml](../docker/docker-compose.yml) has published port `9092`, which it
+  has as evidenced by the entry `services.broker.ports`:
+  ```yaml
+  ports:
+    - "9092:9092"
+    - "9101:9101"
+  ```
+
+### Consumer
+```bash
+~/git/ps-eda-kafka-docker-avro-app$ docker exec -it broker kafka-console-consumer \
+  --bootstrap-server broker:29092 \
+  --topic payments
+{"user": "dirty harry", "amount": 5000, "card-nr": "SNARF-1234-XXXX-29092"}
+{"user": "Severus van Buren", "amount": 3300, "card-nr": "SvBu-1313-XXXX-29092"}
+^CProcessed a total of 2 messages
+~/git/ps-eda-kafka-docker-avro-app$ 
+```
+Here the execution is terminated with _Ctrl-C_ instead of _Ctrl-D_. Furthermore, the same considerations apply as for
+`kafka-console-producer`.
+
+
 ## Resources
 - [https://kafka.apache.org/42/getting-started/](https://kafka.apache.org/42/getting-started/)
 - [https://kafka.apache.org/quickstart/](https://kafka.apache.org/quickstart/)
 - [https://kafka.apache.org/42/apis/](https://kafka.apache.org/42/apis/)
 - [https://cwiki.apache.org/confluence/display/KAFKA/Clients](https://cwiki.apache.org/confluence/display/KAFKA/Clients)
+- [https://www.perplexity.ai/search/111a5a89-716a-4570-8e4e-8573fde86400](https://www.perplexity.ai/search/111a5a89-716a-4570-8e4e-8573fde86400)
